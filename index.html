@@ -1,0 +1,1562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>dada</title>
+  <style>
+
+  </style>
+</head>
+<body>
+<!DOCTYPE html>
+<html lang="ur">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Neloufer Fabrics - Business Ledger</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<!-- Firebase JS SDK (v8 Compatible) -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+<style>
+:root {
+  --bg-color: #f0fdf4;
+  --card-bg: #ffffff;
+  --header-bg: #10b981;
+  --header-text: #ffffff;
+  --text-color: #064e3b;
+  --text-muted: #4b5563;
+  --border-color: #d1fae5;
+  --primary: #10b981;
+  --primary-hover: #059669;
+  --accent: #34d399;
+  --paid-bg: #16a34a;
+  --paid-text: #ffffff;
+  --cleared-blue-bg: #2563eb;
+  --cleared-blue-text: #ffffff;
+  --unpaid-bg: #dc2626;
+  --unpaid-text: #ffffff;
+  --input-bg: #f6fbf7;
+  --card-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.12);
+  --transition-fast: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-bounce: 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+[data-theme="dark"] {
+  --bg-color: #062016;
+  --card-bg: #0f2d21;
+  --header-bg: #064e3b;
+  --header-text: #ecfdf5;
+  --text-color: #f0fdf4;
+  --text-muted: #9ca3af;
+  --border-color: #134e3a;
+  --primary: #10b981;
+  --primary-hover: #34d399;
+  --accent: #059669;
+  --paid-bg: #16a34a;
+  --paid-text: #ffffff;
+  --cleared-blue-bg: #3b82f6;
+  --cleared-blue-text: #ffffff;
+  --unpaid-bg: #ef4444;
+  --unpaid-text: #ffffff;
+  --input-bg: #133a2b;
+  --card-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; transition: background-color var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast); }
+body { background-color: var(--bg-color); color: var(--text-color); padding-bottom: 90px; }
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes modalPop {
+  from { opacity: 0; transform: scale(0.92) translateY(10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.app-header {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: var(--header-text);
+  padding: 22px 20px;
+  border-bottom-left-radius: 24px;
+  border-bottom-right-radius: 24px;
+  box-shadow: 0 8px 20px rgba(16, 185, 129, 0.25);
+  margin-bottom: 22px;
+  text-align: center;
+}
+.top-bar { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.top-bar h1 { font-size: 2.1rem; font-weight: 800; letter-spacing: -0.5px; }
+.user-badge { background: rgba(255,255,255,0.25); padding: 5px 16px; border-radius: 20px; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; backdrop-filter: blur(5px); }
+
+.app-container { max-width: 900px; margin: 0 auto; padding: 0 14px; }
+
+.login-overlay { position: fixed; top:0; left:0; right:0; bottom:0; background: var(--bg-color); z-index: 3000; display: flex; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(8px); }
+.login-card { background: var(--card-bg); border-radius: 24px; padding: 32px 28px; text-align: center; border: 1px solid var(--border-color); box-shadow: var(--card-shadow); max-width: 420px; width: 100%; animation: modalPop 0.4s var(--transition-bounce); }
+
+.metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 20px; }
+.metric-card { 
+  background: var(--card-bg); 
+  padding: 16px; 
+  border-radius: 18px; 
+  border: 1px solid var(--border-color); 
+  box-shadow: var(--card-shadow); 
+  cursor: pointer;
+  transition: transform var(--transition-bounce), box-shadow var(--transition-fast), border-color var(--transition-fast);
+  position: relative;
+}
+.metric-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 14px 28px -4px rgba(16, 185, 129, 0.2);
+  border-color: var(--primary);
+}
+.metric-card:active { transform: scale(0.97); }
+.metric-card h3 { font-size: 0.72rem; color: var(--text-muted); margin-bottom: 6px; text-transform: uppercase; font-weight: 700; }
+.metric-card .value { font-size: 1.15rem; font-weight: 800; color: var(--text-color); }
+
+.card { 
+  background: var(--card-bg); 
+  padding: 20px; 
+  border-radius: 22px; 
+  border: 1px solid var(--border-color); 
+  box-shadow: var(--card-shadow); 
+  margin-bottom: 18px;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+.card h2 { font-size: 1.05rem; color: var(--text-color); font-weight: 700; display: flex; justify-content: space-between; align-items: center; }
+
+.form-group { margin-bottom: 12px; text-align: left; }
+.form-group label { display: block; font-size: 0.75rem; font-weight: 600; margin-bottom: 6px; color: var(--text-muted); }
+.form-group input, .form-group select, .chart-dropdown { 
+  width: 100%; 
+  padding: 11px 14px; 
+  background: var(--input-bg); 
+  border: 1px solid var(--border-color); 
+  color: var(--text-color); 
+  border-radius: 14px; 
+  font-size: 0.88rem; 
+  outline: none;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast);
+}
+.chart-dropdown {
+  width: auto;
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.form-group input:focus, .form-group select:focus, .chart-dropdown:focus { 
+  border-color: var(--primary); 
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+  transform: translateY(-1px);
+}
+
+.btn-main { 
+  background: var(--primary); 
+  color: white; 
+  border: none; 
+  padding: 12px 16px; 
+  border-radius: 14px; 
+  font-weight: 700; 
+  cursor: pointer; 
+  font-size: 0.88rem; 
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
+  transition: all var(--transition-bounce);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.btn-main:hover { 
+  background: var(--primary-hover); 
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(16, 185, 129, 0.4);
+}
+.btn-main:active { transform: scale(0.96); }
+
+.btn-secondary { 
+  background: var(--text-muted); 
+  color: white; 
+  border: none; 
+  padding: 12px 16px; 
+  border-radius: 14px; 
+  font-weight: 700; 
+  cursor: pointer; 
+  font-size: 0.88rem;
+  transition: all var(--transition-fast);
+}
+.btn-secondary:hover { opacity: 0.9; transform: translateY(-1px); }
+
+.btn-action { width: auto; padding: 5px 10px; font-size: 0.75rem; border-radius: 10px; margin-right: 4px; }
+.btn-danger { background: var(--unpaid-bg); color: #fff; box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25); }
+.btn-danger:hover { background: #b91c1c; }
+
+.table-card { background: var(--card-bg); border-radius: 22px; border: 1px solid var(--border-color); box-shadow: var(--card-shadow); overflow: hidden; margin-bottom: 18px; }
+.table-wrapper { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; text-align: left; }
+th, td { padding: 12px 14px; border-bottom: 1px solid var(--border-color); font-size: 0.83rem; vertical-align: middle; }
+th { background: rgba(16, 185, 129, 0.08); font-weight: 700; color: var(--text-muted); text-transform: uppercase; font-size: 0.68rem; letter-spacing: 0.6px; }
+tbody tr { transition: background-color var(--transition-fast); }
+tbody tr:hover { background-color: rgba(16, 185, 129, 0.05); }
+
+.prod-img { width: 38px; height: 38px; border-radius: 10px; object-fit: cover; border: 1px solid var(--border-color); transition: transform var(--transition-bounce); }
+.prod-img:hover { transform: scale(1.3); position: relative; z-index: 10; }
+
+.badge { padding: 5px 10px; border-radius: 10px; font-weight: 700; font-size: 0.72rem; text-transform: uppercase; display: inline-block; text-align: center; cursor: pointer; transition: transform var(--transition-bounce); }
+.badge:hover { transform: scale(1.08); }
+.badge-paid { background: var(--paid-bg); color: var(--paid-text); }
+.badge-unpaid { background: var(--unpaid-bg); color: var(--unpaid-text); }
+.badge-cleared { background: var(--cleared-blue-bg); color: var(--cleared-blue-text); }
+
+.modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.55); backdrop-filter: blur(6px); z-index: 2000; align-items: center; justify-content: center; padding: 16px; opacity: 0; transition: opacity var(--transition-fast); }
+.modal.active { display: flex; opacity: 1; }
+.modal-content { background: var(--card-bg); width: 100%; max-width: 600px; border-radius: 24px; padding: 24px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); max-height: 85vh; overflow-y: auto; transform: scale(0.92); transition: transform var(--transition-bounce); }
+.modal.active .modal-content { transform: scale(1); animation: modalPop 0.35s var(--transition-bounce); }
+
+.bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card-bg); border-top: 1px solid var(--border-color); display: flex; justify-content: space-around; padding: 10px 0; z-index: 1000; backdrop-filter: blur(10px); box-shadow: 0 -4px 20px rgba(0,0,0,0.05); }
+.nav-item { background: none; border: none; color: var(--text-muted); font-size: 0.68rem; font-weight: 600; display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; width: 15%; transition: color var(--transition-fast), transform var(--transition-bounce); }
+.nav-item .icon { font-size: 1.25rem; transition: transform var(--transition-bounce); }
+.nav-item.active { color: var(--primary); font-weight: 800; }
+.nav-item.active .icon { transform: translateY(-3px) scale(1.15); }
+.nav-item:active { transform: scale(0.9); }
+
+.tab-content { display: none; }
+.tab-content.active { display: block; animation: fadeInUp 0.4s var(--transition-bounce); }
+
+.grid-2 { display: grid; grid-template-columns: 1fr 1.5fr; gap: 16px; }
+@media(max-width: 768px) { .grid-2 { grid-template-columns: 1fr; } }
+
+#profit-jpg-card { width: 320px; background: #ffffff; color: #064e3b; border-radius: 18px; padding: 22px; border: 2px solid #10b981; margin: 0 auto; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+
+/* CUSTOM LINE CHART STYLES */
+.line-chart-container {
+  width: 100%;
+  position: relative;
+  overflow-x: auto;
+  padding: 10px 0;
+}
+.line-chart-svg {
+  width: 100%;
+  min-width: 320px;
+  height: 220px;
+  overflow: visible;
+}
+.line-node {
+  cursor: pointer;
+  transition: r 0.2s ease, fill 0.2s ease;
+}
+.line-node:hover {
+  r: 8;
+}
+.node-tooltip {
+  font-size: 10px;
+  font-weight: bold;
+  fill: var(--text-color);
+  text-anchor: middle;
+}
+.chart-labels-row {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+  border-top: 1px dashed var(--border-color);
+  padding-top: 8px;
+}
+.chart-label-item {
+  flex: 1;
+  text-align: center;
+  font-size: 0.72rem;
+}
+.chart-label-title {
+  font-weight: 800;
+  color: var(--primary);
+  margin-bottom: 2px;
+}
+.chart-label-sub {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+}
+</style>
+</head>
+<body data-theme="light">
+
+<!-- FIREBASE CONFIG MODAL -->
+<div id="firebase-modal" class="login-overlay" style="display:none;">
+  <div class="login-card">
+    <h2 style="color:var(--primary); font-size:1.4rem; margin-bottom:6px;">🔥 Firebase Live Setup</h2>
+    <p style="color:var(--text-muted); font-size:0.8rem; margin-bottom:14px;">Realtime Database details add karein taake partner ke sath live sync chale.</p>
+    
+    <div class="form-group"><label>apiKey</label><input type="text" id="fb-apiKey" required></div>
+    <div class="form-group"><label>authDomain</label><input type="text" id="fb-authDomain" required></div>
+    <div class="form-group"><label>databaseURL</label><input type="text" id="fb-databaseURL" placeholder="https://your-app.firebaseio.com" required></div>
+    <div class="form-group"><label>projectId</label><input type="text" id="fb-projectId" required></div>
+    <div class="form-group"><label>storageBucket</label><input type="text" id="fb-storageBucket"></div>
+    <div class="form-group"><label>messagingSenderId</label><input type="text" id="fb-messagingSenderId"></div>
+    <div class="form-group"><label>appId</label><input type="text" id="fb-appId"></div>
+    
+    <button class="btn-main" onclick="saveFirebaseConfig()" style="width:100%; margin-top:10px;">Save & Connect Firebase</button>
+  </div>
+</div>
+
+<!-- LOGIN OVERLAY -->
+<div id="login-overlay" class="login-overlay">
+  <div class="login-card">
+    <h2 style="color:var(--primary); font-size:1.5rem; margin-bottom:6px;">Neloufer Fabrics</h2>
+    <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:18px;">Enter 4-Digit Security PIN</p>
+    <div class="form-group" style="margin-bottom: 18px;">
+      <input type="password" id="pin-input" placeholder="****" maxlength="4" style="text-align:center; font-size:1.6rem; letter-spacing:10px;" required>
+    </div>
+    <button class="btn-main" onclick="verifyPinLogin()" style="width:100%;">Login</button>
+  </div>
+</div>
+
+<!-- MAIN HEADER -->
+<div class="app-header">
+  <div class="top-bar">
+    <h1>Neloufer Fabrics</h1>
+    <div style="display:flex; gap:8px; align-items:center;">
+      <span class="user-badge" id="user-role-badge">SUPER ADMIN</span>
+      <span class="user-badge" id="sync-status-badge" style="background:rgba(0,0,0,0.3);">🔴 OFFLINE</span>
+    </div>
+  </div>
+</div>
+
+<div class="app-container">
+
+  <!-- DASHBOARD TAB -->
+  <div id="dashboard" class="tab-content active">
+    
+    <!-- Sales & Profit Line Chart -->
+    <div class="card">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+        <h2>📈 Performance Trend</h2>
+        <select id="chartTimeframe" class="chart-dropdown" onchange="renderChart()">
+          <option value="last_week">Last Week</option>
+          <option value="last_month" selected>Last Month</option>
+          <option value="last_3_months">Last 3 Months</option>
+          <option value="last_6_months">Last 6 Months</option>
+          <option value="last_year">Last Year</option>
+          <option value="all_time">All Time</option>
+        </select>
+      </div>
+      <div class="line-chart-container">
+        <svg id="lineChartSvg" class="line-chart-svg" viewBox="0 0 500 180" preserveAspectRatio="none"></svg>
+      </div>
+      <div id="lineChartLabels" class="chart-labels-row"></div>
+    </div>
+
+    <!-- All Metrics Cards -->
+    <div class="metrics-grid">
+      <!-- Hidden/Toggle Profit Card -->
+      <div class="metric-card" onclick="toggleMetricVisibility('profit')">
+        <h3>NET PROFIT <span id="profit-eye-icon" style="float:right; font-size:0.8rem;">👁️</span></h3>
+        <div class="value" id="dash-profit" style="color:var(--primary);">••••••••</div>
+      </div>
+      <div class="metric-card" onclick="toggleMetricVisibility('revenue')">
+        <h3>Total Revenue <span id="revenue-eye-icon" style="float:right; font-size:0.8rem;">👁️</span></h3>
+        <div class="value" id="dash-revenue">••••••••</div>
+      </div>
+      <div class="metric-card" onclick="toggleMetricVisibility('owner')">
+        <h3>Owner Share <span id="owner-eye-icon" style="float:right; font-size:0.8rem;">👁️</span></h3>
+        <div class="value" id="dash-owner">••••••••</div>
+      </div>
+      <div class="metric-card" onclick="toggleMetricVisibility('seller')">
+        <h3>Seller Share <span id="seller-eye-icon" style="float:right; font-size:0.8rem;">👁️</span></h3>
+        <div class="value" id="dash-seller">••••••••</div>
+      </div>
+      <div class="metric-card" onclick="openUdhaarReportModal()">
+        <h3>Udhaar ℹ️</h3>
+        <div class="value" id="dash-receivables" style="color: var(--unpaid-bg);">PKR 0</div>
+      </div>
+      <div class="metric-card" onclick="openStockModal()">
+        <h3>Stock Details ℹ️</h3>
+        <div class="value" id="dash-stock">0 Pcs</div>
+      </div>
+    </div>
+
+    <!-- Profit Calculator -->
+    <div class="card">
+      <h2>🧮 Profit Calculator</h2>
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-top:8px;">
+        <div class="form-group">
+          <label>From Date</label>
+          <input type="date" id="calc-start-date">
+        </div>
+        <div class="form-group">
+          <label>To Date</label>
+          <input type="date" id="calc-end-date">
+        </div>
+      </div>
+      <button class="btn-main" onclick="calculateCustomProfit()" style="width:100%; margin-top:8px;">Calculate Profit</button>
+      
+      <div id="custom-profit-result" style="display:none; margin-top:14px; padding:14px; background:rgba(16, 185, 129, 0.1); border-radius:14px; border:1px solid var(--primary); animation: fadeInUp 0.3s ease;">
+        <div style="font-size:0.8rem; color:var(--text-muted);">Net Profit for Selected Duration:</div>
+        <div style="font-size:1.45rem; font-weight:800; color:var(--primary);" id="custom-profit-val">PKR 0</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- INVENTORY TAB -->
+  <div id="inventory" class="tab-content">
+    <div class="grid-2">
+      <div class="card">
+        <h2>+ Add Stock Item</h2>
+        <form id="inventory-form" onsubmit="addStock(event)">
+          <div class="form-group">
+            <label>SKU / Item Code</label>
+            <input type="text" id="inv-sku" placeholder="e.g. LAWN-101" required>
+          </div>
+          <div class="form-group">
+            <label>Title / Fabric</label>
+            <input type="text" id="inv-title" placeholder="e.g. Bareeze Lawn 3P" required>
+          </div>
+          <div class="form-group">
+            <label>Cost Price (Per Piece)</label>
+            <input type="number" id="inv-cost" placeholder="e.g. 2500" min="0" required>
+          </div>
+          <div class="form-group">
+            <label>Quantity (Pcs)</label>
+            <input type="number" id="inv-qty" placeholder="e.g. 10" min="1" required>
+          </div>
+          <div class="form-group">
+            <label>Product Image (Optional)</label>
+            <input type="file" id="inv-img" accept="image/*" onchange="previewImage(event)">
+            <img id="img-preview-tag" class="prod-img" style="display:none; margin-top:8px;">
+          </div>
+          <button type="submit" class="btn-main" style="width: 100%;">Add Stock</button>
+        </form>
+      </div>
+      <div class="table-card">
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Image</th>
+                <th>SKU</th>
+                <th>Title</th>
+                <th>Cost</th>
+                <th>Stock</th>
+              </tr>
+            </thead>
+            <tbody id="inventory-table"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SALES TAB -->
+  <div id="sales" class="tab-content">
+    <div class="grid-2">
+      <div class="card">
+        <h2>+ Record New Sale</h2>
+        <form id="sales-form" onsubmit="recordSale(event)">
+          <div class="form-group">
+            <label>Select Item</label>
+            <select id="sale-item-select" onchange="updateCostPreview()" required>
+              <option value="">Select Stock Item</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Cost Price (Auto)</label>
+            <input type="number" id="sale-cost-preview" readonly style="opacity:0.6; cursor:not-allowed;">
+          </div>
+          <div class="form-group">
+            <label>Pieces Sold</label>
+            <input type="number" id="sale-qty" value="1" min="1" required>
+          </div>
+          <div class="form-group">
+            <label>Selling Price (Per Piece)</label>
+            <input type="number" id="sale-price" placeholder="e.g. 3500" min="0" required>
+          </div>
+          <div class="form-group">
+            <label>Payment Status</label>
+            <select id="sale-status" onchange="toggleCreditFields()" required>
+              <option value="Paid">Paid</option>
+              <option value="On Credit">On Credit</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Customer Name <span id="cust-name-req" style="color:red; display:none;">*</span></label>
+            <input type="text" id="sale-cust-name" placeholder="Optional for Paid">
+          </div>
+          <div class="form-group">
+            <label>Customer Phone <span id="cust-phone-req" style="color:red; display:none;">*</span></label>
+            <input type="text" id="sale-cust-phone" placeholder="Optional for Paid">
+          </div>
+          <div class="form-group" id="due-date-group" style="display: none;">
+            <label>Expected Due Date <span style="color:red;">*</span></label>
+            <input type="date" id="sale-due-date">
+          </div>
+          <button type="submit" class="btn-main" style="width: 100%;">Submit Sale</button>
+        </form>
+      </div>
+      <div class="table-card">
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>SKU</th>
+                <th>Qty</th>
+                <th>Total</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="sales-history-table"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- UDHAAR TAB -->
+  <div id="receivables" class="tab-content">
+    <div class="card" style="margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+      <h2>Udhaar Management</h2>
+      <div style="display:flex; gap:10px;">
+        <button class="btn-main" onclick="openUdhaarReportModal()">👁️ View Udhaar Details</button>
+        <button class="btn-main" onclick="exportUdhaarPDF()" style="background:var(--accent);">📄 Export PDF</button>
+      </div>
+    </div>
+    <div class="table-card">
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Customer</th>
+              <th>SKU</th>
+              <th>Amount</th>
+              <th>Due Date</th>
+              <th>Status / Action</th>
+            </tr>
+          </thead>
+          <tbody id="receivables-table"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROFIT MANAGEMENT TAB -->
+  <div id="profit-management" class="tab-content">
+    <div class="card">
+      <h2>🤝 Monthly Profit Share</h2>
+      <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:14px;">Month select karein - profit live auto-fetch hoga.</p>
+      
+      <form id="profit-payout-form" onsubmit="submitProfitPayout(event)">
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+          <div class="form-group">
+            <label>Select Month</label>
+            <input type="month" id="payout-month" required onchange="calculatePayoutPreview()">
+          </div>
+          <div class="form-group">
+            <label>Fetched Net Profit (PKR)</label>
+            <input type="number" id="payout-net-profit" readonly style="font-weight:bold; color:var(--primary);">
+          </div>
+        </div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+          <div class="form-group">
+            <label>Owner Share</label>
+            <input type="number" id="payout-owner-share" readonly>
+          </div>
+          <div class="form-group">
+            <label>Seller Share</label>
+            <input type="number" id="payout-seller-share" readonly>
+          </div>
+        </div>
+        <button type="submit" class="btn-main" style="width:100%; margin-top:10px;">Save Monthly Payout Record</button>
+      </form>
+    </div>
+
+    <div class="table-card">
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Month</th>
+              <th>Net Profit</th>
+              <th>Owner Payout</th>
+              <th>Seller Payout</th>
+              <th>Seller Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="payout-history-table"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- REPORTS & SETTINGS MENU TAB -->
+  <div id="reports-tab" class="tab-content">
+    <div class="card">
+      <h2>⚙️ System Tools & Settings</h2>
+      <div style="display:flex; flex-direction:column; gap:12px; margin-top:14px;">
+        <button class="btn-main" onclick="openReportModal()">📊 Open Sales Report Center</button>
+        <button class="btn-main" onclick="showFirebaseSetupModal()" style="background:var(--primary-hover);">🔥 Re-configure Firebase Database</button>
+        <button class="btn-main" onclick="toggleTheme()" style="background:var(--accent);" id="theme-btn">🌙 Toggle Dark / Light Mode</button>
+        <button class="btn-main btn-danger" onclick="logout()">🚪 Logout Account</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- MODALS -->
+
+<!-- Stock Details Modal -->
+<div id="stock-modal" class="modal">
+  <div class="modal-content">
+    <h2 style="margin-bottom: 12px;">📦 Available Stock Details</h2>
+    <div style="margin-bottom: 14px; padding: 12px; background: var(--input-bg); border-radius: 14px; display: flex; justify-content: space-between; align-items: center;">
+      <div>
+        <div style="font-size: 0.75rem; color: var(--text-muted);">Total Stock Items:</div>
+        <div style="font-size: 1.15rem; font-weight: bold;" id="modal-total-pcs">0 Pcs</div>
+      </div>
+      <div>
+        <div style="font-size: 0.75rem; color: var(--text-muted);">Total Stock Cost Value:</div>
+        <div style="font-size: 1.15rem; font-weight: bold; color: var(--primary);" id="modal-total-value">PKR 0</div>
+      </div>
+    </div>
+
+    <div class="table-wrapper" style="max-height:280px; overflow-y:auto; border:1px solid var(--border-color); border-radius:14px; margin-bottom:14px;">
+      <table>
+        <thead>
+          <tr>
+            <th>SKU</th>
+            <th>Title</th>
+            <th>Cost/Pc</th>
+            <th>Qty</th>
+            <th>Total Value</th>
+          </tr>
+        </thead>
+        <tbody id="stock-modal-table"></tbody>
+      </table>
+    </div>
+
+    <div style="display:flex; gap:10px;">
+      <button class="btn-main" onclick="exportStockPDF()" style="flex:1; background:var(--accent);">📄 Export Stock PDF</button>
+      <button class="btn-secondary" onclick="closeStockModal()" style="flex:1;">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Sales Report Modal -->
+<div id="report-modal" class="modal">
+  <div class="modal-content">
+    <h2 style="margin-bottom: 14px;">Sales Report Center</h2>
+    <div class="form-group">
+      <label>Start Date</label>
+      <input type="date" id="report-start-date">
+    </div>
+    <div class="form-group">
+      <label>End Date</label>
+      <input type="date" id="report-end-date">
+    </div>
+    <div style="display:flex; gap:10px; margin-top:14px;">
+      <button class="btn-main" onclick="viewDateRangeReport()" style="flex:1;">👁️ View Report</button>
+      <button class="btn-main" onclick="generateDateRangePDF()" style="flex:1; background:var(--accent);">📄 Export PDF</button>
+      <button class="btn-secondary" onclick="closeReportModal()">Cancel</button>
+    </div>
+    
+    <div id="report-view-container" style="display:none; margin-top:18px;">
+      <h3 style="font-size:0.9rem; margin-bottom:10px;">Filtered Sales Results</h3>
+      <div class="table-wrapper" style="max-height:250px; overflow-y:auto; border:1px solid var(--border-color); border-radius:14px;">
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>SKU</th>
+              <th>Qty</th>
+              <th>Total</th>
+              <th>Customer</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="report-view-table"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Udhaar Report View Modal -->
+<div id="udhaar-report-modal" class="modal">
+  <div class="modal-content">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 14px; flex-wrap:wrap; gap:8px;">
+      <h2>Udhaar Details</h2>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <label style="font-size:0.75rem; font-weight:bold; color:var(--text-muted);">Sort:</label>
+        <select id="udhaarSortOrder" class="chart-dropdown" onchange="renderUdhaarReportTable()">
+          <option value="desc">Newest First</option>
+          <option value="asc">Oldest First</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="table-wrapper" style="max-height:300px; overflow-y:auto; border:1px solid var(--border-color); border-radius:14px;">
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Customer</th>
+            <th>Phone</th>
+            <th>SKU</th>
+            <th>Amount</th>
+            <th>Due Date</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="udhaar-report-table"></tbody>
+      </table>
+    </div>
+    <div style="display:flex; gap:10px; margin-top:16px;">
+      <button class="btn-main" onclick="exportUdhaarPDF()" style="flex:1;">📄 Export PDF</button>
+      <button class="btn-secondary" onclick="closeUdhaarReportModal()" style="flex:1;">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Sale Modal -->
+<div id="edit-sale-modal" class="modal">
+  <div class="modal-content">
+    <h2 style="margin-bottom: 14px;">Edit Sale Entry</h2>
+    <input type="hidden" id="edit-sale-id">
+    <div class="form-group">
+      <label>Selling Price (Per Piece)</label>
+      <input type="number" id="edit-sale-price">
+    </div>
+    <div class="form-group">
+      <label>Customer Name</label>
+      <input type="text" id="edit-sale-cust-name">
+    </div>
+    <div class="form-group">
+      <label>Customer Phone</label>
+      <input type="text" id="edit-sale-cust-phone">
+    </div>
+    <div style="display:flex; gap:10px; margin-top:14px;">
+      <button class="btn-main" onclick="saveEditedSale()" style="flex:1;">Save Changes</button>
+      <button class="btn-secondary" onclick="closeEditSaleModal()" style="flex:1;">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- JPG Profit Receipt Modal -->
+<div id="jpg-card-modal" class="modal">
+  <div class="modal-content" style="text-align:center;">
+    <h2 style="margin-bottom:14px;">🖼️ Monthly Profit Share Card</h2>
+    <div id="profit-jpg-card">
+      <h3 style="font-size:1.35rem; color:#10b981; border-bottom:1px solid #d1fae5; padding-bottom:8px; margin-bottom:14px;">Neloufer Fabrics</h3>
+      <p style="font-size:0.82rem; color:#4b5563; margin-bottom:14px;">Profit Share Receipt</p>
+      <div style="text-align:left; font-size:0.88rem; line-height:1.9;">
+        <div><strong>Month:</strong> <span id="card-month">-</span></div>
+        <div><strong>Net Profit:</strong> PKR <span id="card-net-profit">0</span></div>
+        <div><strong>Owner Share:</strong> PKR <span id="card-owner-share">0</span></div>
+        <div style="color:#10b981; font-weight:bold;"><strong>Seller Share:</strong> PKR <span id="card-seller-share">0</span></div>
+        <div><strong>Approval:</strong> <span id="card-status">-</span></div>
+      </div>
+      <div style="margin-top:18px; font-size:0.72rem; color:#9ca3af; border-top:1px dashed #d1fae5; padding-top:10px;">
+        Date: <span id="card-date">-</span>
+      </div>
+    </div>
+    <div style="display:flex; gap:10px; margin-top:18px;">
+      <button class="btn-main" onclick="downloadProfitCardJPG()" style="flex:1;">📥 Download JPG Card</button>
+      <button class="btn-secondary" onclick="closeJPGModal()" style="flex:1;">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- BOTTOM NAVIGATION BAR -->
+<nav class="bottom-nav">
+  <button class="nav-item active" onclick="openTab('dashboard', this)">
+    <span class="icon">📊</span>
+    <span>Dashboard</span>
+  </button>
+  <button class="nav-item" onclick="openTab('inventory', this)">
+    <span class="icon">📦</span>
+    <span>Stock</span>
+  </button>
+  <button class="nav-item" onclick="openTab('sales', this)">
+    <span class="icon">💳</span>
+    <span>Sales</span>
+  </button>
+  <button class="nav-item" onclick="openTab('receivables', this)">
+    <span class="icon">📑</span>
+    <span>Udhaar</span>
+  </button>
+  <button class="nav-item" onclick="openTab('profit-management', this)">
+    <span class="icon">🤝</span>
+    <span>Profit</span>
+  </button>
+  <button class="nav-item" onclick="openTab('reports-tab', this)">
+    <span class="icon">⚙️</span>
+    <span>Menu</span>
+  </button>
+</nav>
+
+<script>
+let currentBase64Image = "";
+let activeCardPayout = null;
+let db = null;
+let firebaseConnected = false;
+
+// Visibility States for Dashboard Metrics
+let visibility = {
+  profit: false,
+  revenue: false,
+  owner: false,
+  seller: false
+};
+
+let metricsValues = {
+  profit: 0,
+  revenue: 0,
+  owner: 0,
+  seller: 0
+};
+
+let state = {
+  userRole: localStorage.getItem('neloufer_user_role') || null,
+  inventory: [],
+  sales: [],
+  payouts: []
+};
+
+// Initialize Firebase
+function initFirebase() {
+  const cfg = JSON.parse(localStorage.getItem('neloufer_firebase_config'));
+  if (!cfg) {
+    showFirebaseSetupModal();
+    return;
+  }
+
+  try {
+    if (!firebase.apps.length) {
+      firebase.initializeApp(cfg);
+    }
+    db = firebase.database();
+    firebaseConnected = true;
+    document.getElementById('sync-status-badge').innerText = '🟢 LIVE SYNC';
+    document.getElementById('sync-status-badge').style.background = '#16a34a';
+
+    // Realtime Listener
+    db.ref('neloufer_fabrics_data').on('value', (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        state.inventory = data.inventory || [];
+        state.sales = data.sales || [];
+        state.payouts = data.payouts || [];
+      } else {
+        state.inventory = [];
+        state.sales = [];
+        state.payouts = [];
+      }
+      renderApp();
+    });
+
+  } catch (e) {
+    console.error(e);
+    alert("Firebase connection failed. Details check karein!");
+    document.getElementById('sync-status-badge').innerText = '🔴 ERROR';
+    showFirebaseSetupModal();
+  }
+}
+
+function showFirebaseSetupModal() {
+  document.getElementById('firebase-modal').style.display = 'flex';
+  const cfg = JSON.parse(localStorage.getItem('neloufer_firebase_config')) || {};
+  document.getElementById('fb-apiKey').value = cfg.apiKey || '';
+  document.getElementById('fb-authDomain').value = cfg.authDomain || '';
+  document.getElementById('fb-databaseURL').value = cfg.databaseURL || '';
+  document.getElementById('fb-projectId').value = cfg.projectId || '';
+  document.getElementById('fb-storageBucket').value = cfg.storageBucket || '';
+  document.getElementById('fb-messagingSenderId').value = cfg.messagingSenderId || '';
+  document.getElementById('fb-appId').value = cfg.appId || '';
+}
+
+function saveFirebaseConfig() {
+  const cfg = {
+    apiKey: document.getElementById('fb-apiKey').value.trim(),
+    authDomain: document.getElementById('fb-authDomain').value.trim(),
+    databaseURL: document.getElementById('fb-databaseURL').value.trim(),
+    projectId: document.getElementById('fb-projectId').value.trim(),
+    storageBucket: document.getElementById('fb-storageBucket').value.trim(),
+    messagingSenderId: document.getElementById('fb-messagingSenderId').value.trim(),
+    appId: document.getElementById('fb-appId').value.trim()
+  };
+
+  if(!cfg.apiKey || !cfg.databaseURL || !cfg.projectId) {
+    alert("Please fill all key fields!");
+    return;
+  }
+
+  localStorage.setItem('neloufer_firebase_config', JSON.stringify(cfg));
+  document.getElementById('firebase-modal').style.display = 'none';
+  initFirebase();
+}
+
+function saveData() {
+  if (firebaseConnected && db) {
+    db.ref('neloufer_fabrics_data').set({
+      inventory: state.inventory,
+      sales: state.sales,
+      payouts: state.payouts
+    });
+  } else {
+    localStorage.setItem('neloufer_inventory', JSON.stringify(state.inventory));
+    localStorage.setItem('neloufer_sales', JSON.stringify(state.sales));
+    localStorage.setItem('neloufer_payouts', JSON.stringify(state.payouts));
+    renderApp();
+  }
+}
+
+function verifyPinLogin() {
+  const pin = document.getElementById('pin-input').value.trim();
+  if (pin === '2244') {
+    state.userRole = 'super_admin';
+    localStorage.setItem('neloufer_user_role', 'super_admin');
+    checkAuth();
+  } else if (pin === '0000') {
+    state.userRole = 'admin';
+    localStorage.setItem('neloufer_user_role', 'admin');
+    checkAuth();
+  } else {
+    alert("Incorrect PIN!");
+    document.getElementById('pin-input').value = '';
+  }
+}
+
+function checkAuth() {
+  if (!state.userRole) {
+    document.getElementById('login-overlay').style.display = 'flex';
+  } else {
+    document.getElementById('login-overlay').style.display = 'none';
+    document.getElementById('user-role-badge').innerText = state.userRole === 'super_admin' ? 'SUPER ADMIN' : 'ADMIN';
+    initFirebase();
+  }
+}
+
+function logout() {
+  state.userRole = null;
+  localStorage.removeItem('neloufer_user_role');
+  document.getElementById('pin-input').value = '';
+  checkAuth();
+}
+
+function toggleTheme() {
+  const body = document.body;
+  const isLight = body.getAttribute('data-theme') === 'light';
+  body.setAttribute('data-theme', isLight ? 'dark' : 'light');
+}
+
+function toggleMetricVisibility(metric) {
+  visibility[metric] = !visibility[metric];
+  updateMetricDisplay(metric);
+}
+
+function updateMetricDisplay(metric) {
+  const el = document.getElementById(`dash-${metric}`);
+  const eye = document.getElementById(`${metric}-eye-icon`);
+  if (!el || !eye) return;
+
+  if (visibility[metric]) {
+    el.innerText = `PKR ${metricsValues[metric].toLocaleString()}`;
+    eye.innerText = '🙈';
+  } else {
+    el.innerText = '••••••••';
+    eye.innerText = '👁️';
+  }
+}
+
+function openTab(tabId, btn) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  
+  const targetTab = document.getElementById(tabId);
+  targetTab.classList.add('active');
+  if(btn) btn.classList.add('active');
+  if(tabId === 'dashboard') renderChart();
+}
+
+function toggleCreditFields() {
+  const status = document.getElementById('sale-status').value;
+  const dueDateGroup = document.getElementById('due-date-group');
+  const custNameInput = document.getElementById('sale-cust-name');
+  const custPhoneInput = document.getElementById('sale-cust-phone');
+  const custNameReq = document.getElementById('cust-name-req');
+  const custPhoneReq = document.getElementById('cust-phone-req');
+
+  if (status === 'On Credit') {
+    dueDateGroup.style.display = 'block';
+    document.getElementById('sale-due-date').required = true;
+    
+    custNameInput.required = true;
+    custPhoneInput.required = true;
+    custNameReq.style.display = 'inline';
+    custPhoneReq.style.display = 'inline';
+  } else {
+    dueDateGroup.style.display = 'none';
+    document.getElementById('sale-due-date').required = false;
+
+    custNameInput.required = false;
+    custPhoneInput.required = false;
+    custNameReq.style.display = 'none';
+    custPhoneReq.style.display = 'none';
+  }
+}
+
+function previewImage(event) {
+  const file = event.target.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      currentBase64Image = e.target.result;
+      const imgTag = document.getElementById('img-preview-tag');
+      imgTag.src = currentBase64Image;
+      imgTag.style.display = 'block';
+    }
+    reader.readAsDataURL(file);
+  }
+}
+
+function addStock(e) {
+  e.preventDefault();
+  const sku = document.getElementById('inv-sku').value.trim();
+  const title = document.getElementById('inv-title').value.trim();
+  const cost = parseFloat(document.getElementById('inv-cost').value);
+  const qty = parseInt(document.getElementById('inv-qty').value);
+  const image = currentBase64Image || '';
+
+  const existingIndex = state.inventory.findIndex(item => item.sku === sku);
+  if (existingIndex > -1) {
+    state.inventory[existingIndex].qty += qty;
+    state.inventory[existingIndex].cost = cost;
+    if(image) state.inventory[existingIndex].image = image;
+  } else {
+    state.inventory.push({ sku, title, cost, qty, image });
+  }
+
+  document.getElementById('inventory-form').reset();
+  document.getElementById('img-preview-tag').style.display = 'none';
+  currentBase64Image = "";
+  saveData();
+}
+
+function updateCostPreview() {
+  const sku = document.getElementById('sale-item-select').value;
+  const item = state.inventory.find(i => i.sku === sku);
+  document.getElementById('sale-cost-preview').value = item ? item.cost : '';
+}
+
+function recordSale(e) {
+  e.preventDefault();
+  const sku = document.getElementById('sale-item-select').value;
+  const item = state.inventory.find(i => i.sku === sku);
+  const soldQty = parseInt(document.getElementById('sale-qty').value);
+  const status = document.getElementById('sale-status').value;
+  const dueDate = document.getElementById('sale-due-date').value;
+  const custName = document.getElementById('sale-cust-name').value.trim();
+  const custPhone = document.getElementById('sale-cust-phone').value.trim();
+
+  if (status === 'On Credit') {
+    if (!custName || !custPhone) {
+      alert("Udhaar Sale ke liye Customer Name aur Phone Number mandatory hain!");
+      return;
+    }
+    if (!dueDate) {
+      alert("Due Date select karein!");
+      return;
+    }
+  }
+
+  if (!item || item.qty < soldQty) { alert("Stock kam hai!"); return; }
+
+  const costPrice = item.cost;
+  const unitSellingPrice = parseFloat(document.getElementById('sale-price').value);
+  const totalSellingPrice = unitSellingPrice * soldQty;
+
+  const todayIso = new Date().toISOString().slice(0, 10);
+
+  const newSale = {
+    id: Date.now(),
+    rawDate: todayIso,
+    date: new Date().toLocaleDateString(),
+    sku,
+    soldQty,
+    costPrice,
+    unitSellingPrice,
+    totalSellingPrice,
+    custName: custName || 'Walk-in',
+    custPhone: custPhone || 'N/A',
+    status,
+    dueDate: status === 'On Credit' ? dueDate : 'N/A',
+    isClearedUdhaar: false
+  };
+
+  item.qty -= soldQty;
+  state.sales.push(newSale);
+  document.getElementById('sales-form').reset();
+  toggleCreditFields();
+  saveData();
+}
+
+function toggleUdhaarStatus(saleId) {
+  const sale = state.sales.find(s => s.id === saleId);
+  if (!sale) return;
+
+  if (sale.status === 'On Credit') {
+    sale.status = 'Paid';
+    sale.isClearedUdhaar = true;
+    saveData();
+  } else if (sale.isClearedUdhaar) {
+    if (state.userRole !== 'super_admin') { alert("Sirf Super Admin revert kar sakta hai!"); return; }
+    if (confirm("Wapas Udhaar status me daalna chahte hain?")) {
+      sale.status = 'On Credit';
+      sale.isClearedUdhaar = false;
+      saveData();
+    }
+  }
+}
+
+function deleteSale(saleId) {
+  if (state.userRole !== 'super_admin') { alert("Sirf Super Admin delete kar sakta hai!"); return; }
+  if (confirm("Entry delete karna chahte hain?")) {
+    const saleIndex = state.sales.findIndex(s => s.id === saleId);
+    if (saleIndex > -1) {
+      const sale = state.sales[saleIndex];
+      const item = state.inventory.find(i => i.sku === sale.sku);
+      if (item) item.qty += sale.soldQty;
+      state.sales.splice(saleIndex, 1);
+      saveData();
+    }
+  }
+}
+
+function openEditSaleModal(saleId) {
+  if (state.userRole !== 'super_admin') { alert("Sirf Super Admin edit kar sakta hai!"); return; }
+  const sale = state.sales.find(s => s.id === saleId);
+  if(sale) {
+    document.getElementById('edit-sale-id').value = sale.id;
+    document.getElementById('edit-sale-price').value = sale.unitSellingPrice;
+    document.getElementById('edit-sale-cust-name').value = sale.custName;
+    document.getElementById('edit-sale-cust-phone').value = sale.custPhone;
+    document.getElementById('edit-sale-modal').classList.add('active');
+  }
+}
+function closeEditSaleModal() { document.getElementById('edit-sale-modal').classList.remove('active'); }
+
+function saveEditedSale() {
+  const id = parseInt(document.getElementById('edit-sale-id').value);
+  const sale = state.sales.find(s => s.id === id);
+  if(sale) {
+    sale.unitSellingPrice = parseFloat(document.getElementById('edit-sale-price').value);
+    sale.totalSellingPrice = sale.unitSellingPrice * sale.soldQty;
+    sale.custName = document.getElementById('edit-sale-cust-name').value;
+    sale.custPhone = document.getElementById('edit-sale-cust-phone').value;
+    closeEditSaleModal();
+    saveData();
+  }
+}
+
+function openStockModal() {
+  const tbody = document.getElementById('stock-modal-table');
+  tbody.innerHTML = '';
+  let totalPcs = 0, totalValue = 0;
+
+  if(state.inventory.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No stock.</td></tr>';
+  } else {
+    state.inventory.forEach(item => {
+      const val = item.cost * item.qty;
+      totalPcs += item.qty;
+      totalValue += val;
+      tbody.innerHTML += `<tr><td><strong>${item.sku}</strong></td><td>${item.title}</td><td>PKR ${item.cost}</td><td>${item.qty} Pcs</td><td>PKR ${val}</td></tr>`;
+    });
+  }
+  document.getElementById('modal-total-pcs').innerText = `${totalPcs} Pcs`;
+  document.getElementById('modal-total-value').innerText = `PKR ${totalValue.toLocaleString()}`;
+  document.getElementById('stock-modal').classList.add('active');
+}
+function closeStockModal() { document.getElementById('stock-modal').classList.remove('active'); }
+
+function exportStockPDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  doc.text("Neloufer Fabrics - Stock Valuation", 14, 20);
+  const tableData = state.inventory.map(i => [i.sku, i.title, `PKR ${i.cost}`, `${i.qty} Pcs`, `PKR ${i.cost * i.qty}`]);
+  doc.autoTable({ startY: 28, head: [['SKU', 'Title', 'Cost/Pc', 'Qty', 'Total Value']], body: tableData });
+  doc.save(`Stock_Report_${new Date().toISOString().slice(0,10)}.pdf`);
+}
+
+function openReportModal() { document.getElementById('report-modal').classList.add('active'); }
+function closeReportModal() { document.getElementById('report-modal').classList.remove('active'); }
+
+function viewDateRangeReport() {
+  const start = document.getElementById('report-start-date').value;
+  const end = document.getElementById('report-end-date').value;
+  if(!start || !end) return alert("Dates select karein!");
+
+  const filtered = state.sales.filter(s => s.rawDate >= start && s.rawDate <= end);
+  const table = document.getElementById('report-view-table');
+  table.innerHTML = filtered.length ? filtered.map(s => `<tr><td>${s.date}</td><td>${s.sku}</td><td>${s.soldQty}</td><td>PKR ${s.totalSellingPrice}</td><td>${s.custName}</td><td>${s.status}</td></tr>`).join('') : '<tr><td colspan="6">No sales found.</td></tr>';
+  document.getElementById('report-view-container').style.display = 'block';
+}
+
+function generateDateRangePDF() {
+  const start = document.getElementById('report-start-date').value;
+  const end = document.getElementById('report-end-date').value;
+  if(!start || !end) return alert("Dates select karein!");
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  doc.text(`Sales Report (${start} to ${end})`, 14, 20);
+  const filtered = state.sales.filter(s => s.rawDate >= start && s.rawDate <= end);
+  doc.autoTable({ startY: 28, head: [['Date', 'SKU', 'Qty', 'Total', 'Customer', 'Status']], body: filtered.map(s => [s.date, s.sku, `${s.soldQty} Pcs`, `PKR ${s.totalSellingPrice}`, s.custName, s.status]) });
+  doc.save(`Sales_Report_${start}_to_${end}.pdf`);
+  closeReportModal();
+}
+
+function openUdhaarReportModal() {
+  renderUdhaarReportTable();
+  document.getElementById('udhaar-report-modal').classList.add('active');
+}
+
+function renderUdhaarReportTable() {
+  const sortOrder = document.getElementById('udhaarSortOrder') ? document.getElementById('udhaarSortOrder').value : 'desc';
+  let udhaarSales = state.sales.filter(s => s.status === 'On Credit' || s.isClearedUdhaar);
+
+  udhaarSales.sort((a, b) => {
+    const dateA = a.rawDate ? new Date(a.rawDate) : new Date(a.id);
+    const dateB = b.rawDate ? new Date(b.rawDate) : new Date(b.id);
+    return sortOrder === 'desc' ? dateB - dateA : dateA - dateB;
+  });
+
+  const tbody = document.getElementById('udhaar-report-table');
+  if (udhaarSales.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">No Udhaar records found.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = udhaarSales.map(s => `
+    <tr>
+      <td>${s.date}</td>
+      <td><strong>${s.custName}</strong></td>
+      <td>${s.custPhone}</td>
+      <td>${s.sku}</td>
+      <td>PKR ${s.totalSellingPrice.toLocaleString()}</td>
+      <td>${s.dueDate}</td>
+      <td><span class="badge ${s.status === 'Paid' ? 'badge-cleared' : 'badge-unpaid'}">${s.status}</span></td>
+    </tr>
+  `).join('');
+}
+
+function closeUdhaarReportModal() { document.getElementById('udhaar-report-modal').classList.remove('active'); }
+
+function exportUdhaarPDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  doc.text("Neloufer Fabrics - Udhaar Report", 14, 20);
+  
+  const sortOrder = document.getElementById('udhaarSortOrder') ? document.getElementById('udhaarSortOrder').value : 'desc';
+  let udhaarSales = state.sales.filter(s => s.status === 'On Credit' || s.isClearedUdhaar);
+
+  udhaarSales.sort((a, b) => {
+    const dateA = a.rawDate ? new Date(a.rawDate) : new Date(a.id);
+    const dateB = b.rawDate ? new Date(b.rawDate) : new Date(b.id);
+    return sortOrder === 'desc' ? dateB - dateA : dateA - dateB;
+  });
+
+  doc.autoTable({ 
+    startY: 28, 
+    head: [['Date', 'Customer', 'Phone', 'SKU', 'Amount', 'Due Date', 'Status']], 
+    body: udhaarSales.map(s => [s.date, s.custName, s.custPhone, s.sku, `PKR ${s.totalSellingPrice}`, s.dueDate, s.status]) 
+  });
+  doc.save(`Udhaar_Report_${new Date().toISOString().slice(0,10)}.pdf`);
+}
+
+function calculateCustomProfit() {
+  const startVal = document.getElementById('calc-start-date').value;
+  const endVal = document.getElementById('calc-end-date').value;
+  
+  if(!startVal || !endVal) return alert("Dono dates select karein!");
+
+  const startDate = new Date(startVal);
+  const endDate = new Date(endVal);
+  endDate.setHours(23, 59, 59, 999);
+
+  let intervalProfit = 0;
+
+  state.sales.forEach(s => {
+    if (s.status === 'Paid') {
+      let saleDateObj = s.rawDate ? new Date(s.rawDate) : new Date(s.date);
+      if (saleDateObj >= startDate && saleDateObj <= endDate) {
+        intervalProfit += (s.totalSellingPrice - (s.costPrice * s.soldQty));
+      }
+    }
+  });
+
+  document.getElementById('custom-profit-val').innerText = `PKR ${intervalProfit.toLocaleString()}`;
+  document.getElementById('custom-profit-result').style.display = 'block';
+}
+
+function calculatePayoutPreview() {
+  const month = document.getElementById('payout-month').value;
+  if(!month) return;
+
+  let netProfit = 0;
+  let cogsTotal = 0;
+
+  state.sales.filter(s => s.status === 'Paid' && (s.rawDate ? s.rawDate.startsWith(month) : false)).forEach(s => {
+    const cogs = s.costPrice * s.soldQty;
+    cogsTotal += cogs;
+    netProfit += (s.totalSellingPrice - cogs);
+  });
+
+  const sellerShare = netProfit / 2;
+  const ownerShare = cogsTotal + sellerShare;
+
+  document.getElementById('payout-net-profit').value = netProfit;
+  document.getElementById('payout-owner-share').value = ownerShare;
+  document.getElementById('payout-seller-share').value = sellerShare;
+}
+
+function submitProfitPayout(e) {
+  e.preventDefault();
+  const month = document.getElementById('payout-month').value;
+  const netProfit = parseFloat(document.getElementById('payout-net-profit').value) || 0;
+  const ownerShare = parseFloat(document.getElementById('payout-owner-share').value) || 0;
+  const sellerShare = parseFloat(document.getElementById('payout-seller-share').value) || 0;
+
+  const existingIndex = state.payouts.findIndex(p => p.month === month);
+  const payoutObj = { id: Date.now(), month, netProfit, ownerShare, sellerShare, status: 'Pending Approval', recordedDate: new Date().toLocaleDateString() };
+
+  if(existingIndex > -1) state.payouts[existingIndex] = payoutObj;
+  else state.payouts.push(payoutObj);
+
+  document.getElementById('profit-payout-form').reset();
+  saveData();
+}
+
+function toggleSellerApproval(payoutId) {
+  const payout = state.payouts.find(p => p.id === payoutId);
+  if(payout) {
+    payout.status = payout.status === 'Approved' ? 'Pending Approval' : 'Approved';
+    saveData();
+  }
+}
+
+function openProfitCardModal(payoutId) {
+  const payout = state.payouts.find(p => p.id === payoutId);
+  if(!payout) return;
+
+  activeCardPayout = payout;
+  document.getElementById('card-month').innerText = payout.month;
+  document.getElementById('card-net-profit').innerText = payout.netProfit.toLocaleString();
+  document.getElementById('card-owner-share').innerText = payout.ownerShare.toLocaleString();
+  document.getElementById('card-seller-share').innerText = payout.sellerShare.toLocaleString();
+  document.getElementById('card-status').innerText = payout.status;
+  document.getElementById('card-date').innerText = payout.recordedDate;
+  document.getElementById('jpg-card-modal').classList.add('active');
+}
+function closeJPGModal() { document.getElementById('jpg-card-modal').classList.remove('active'); }
+
+function downloadProfitCardJPG() {
+  html2canvas(document.getElementById('profit-jpg-card')).then(canvas => {
+    const link = document.createElement('a');
+    link.download = `Profit_Card_${activeCardPayout ? activeCardPayout.month : 'Receipt'}.jpg`;
+    link.href = canvas.toDataURL('image/jpeg');
+    link.click();
+  });
+}
+
+function renderChart() {
+  const svg = document.getElementById('lineChartSvg');
+  const labelsContainer = document.getElementById('lineChartLabels');
+  if(!svg || !labelsContainer) return;
+  
+  const timeframeSelect = document.getElementById('chartTimeframe');
+  const tf = timeframeSelect ? timeframeSelect.value : 'last_month';
+
+  const today = new Date();
+  let chartData = [];
+
+  if (tf === 'last_week') {
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(today);
+      d.setDate(today.getDate() - i);
+      const iso = d.toISOString().slice(0, 10);
+      const label = d.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric' });
+      chartData.push(getSalesForFilter(s => s.rawDate === iso, label));
+    }
+  } else if (tf === 'last_month') {
+    for (let i = 0; i < 4; i++) {
+      const endW = new Date(today);
+      endW.setDate(today.getDate() - (i * 7));
+      const startW = new Date(endW);
+      startW.setDate(endW.getDate() - 6);
+
+      const label = `W${4 - i} (${startW.getDate()}/${startW.getMonth()+1})`;
+      const startIso = startW.toISOString().slice(0, 10);
+      const endIso = endW.toISOString().slice(0, 10);
+      chartData.push(getSalesForFilter(s => s.rawDate >= startIso && s.rawDate <= endIso, label));
+    }
+  } else if (tf === 'last_3_months' || tf === 'last_6_months') {
+    const monthCount = tf === 'last_3_months' ? 3 : 6;
+    for (let i = 0; i < monthCount; i++) {
+      const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
+      const monthKey = d.toISOString().slice(0, 7);
+      const label = d.toLocaleString('default', { month: 'short' });
+      chartData.push(getSalesForFilter(s => s.rawDate && s.rawDate.startsWith(monthKey), label));
+    }
+  } else if (tf === 'last_year') {
+    for (let i = 0; i < 12; i++) {
+      const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
+      const monthKey = d.toISOString().slice(0, 7);
+      const label = d.toLocaleString('default', { month: 'short' });
+      chartData.push(getSalesForFilter(s => s.rawDate && s.rawDate.startsWith(monthKey), label));
+    }
+  } else if (tf === 'all_time') {
+    for (let i = 0; i < 5; i++) {
+      const y = today.getFullYear() - i;
+      const label = y.toString();
+      chartData.push(getSalesForFilter(s => s.rawDate && s.rawDate.startsWith(y.toString()), label));
+    }
+  }
+
+  const width = 500;
+  const height = 180;
+  const padding = 25;
+  const maxVal = Math.max(...chartData.map(d => d.revenue), 100);
+
+  const points = chartData.map((d, idx) => {
+    const x = padding + (idx * ((width - (padding * 2)) / Math.max(chartData.length - 1, 1)));
+    const y = height - padding - ((d.revenue / maxVal) * (height - (padding * 2)));
+    return { x, y, revenue: d.revenue, profit: d.profit, pieces: d.pieces, label: d.label };
+  });
+
+  let pathD = "";
+  points.forEach((pt, idx) => {
+    pathD += (idx === 0 ? `M ${pt.x} ${pt.y}` : ` L ${pt.x} ${pt.y}`);
+  });
+
+  let areaD = pathD + ` L ${points[points.length - 1].x} ${height - padding} L ${points[0].x} ${height - padding} Z`;
+
+  svg.innerHTML = `
+    <defs>
+      <linearGradient id="lineGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#10b981" stop-opacity="0.4"/>
+        <stop offset="100%" stop-color="#10b981" stop-opacity="0"/>
+      </linearGradient>
+    </defs>
+    <path d="${areaD}" fill="url(#lineGrad)"/>
+    <path d="${pathD}" fill="none" stroke="#10b981" stroke-width="4" stroke-linecap="round"/>
+    ${points.map(pt => `
+      <circle cx="${pt.x}" cy="${pt.y}" r="6" fill="#ffffff" stroke="#10b981" stroke-width="3" class="line-node"/>
+      <text x="${pt.x}" y="${pt.y - 12}" class="node-tooltip">PKR ${pt.revenue >= 1000 ? (pt.revenue/1000).toFixed(1) + 'k' : pt.revenue}</text>
+    `).join('')}
+  `;
+
+  labelsContainer.innerHTML = points.map(pt => `
+    <div class="chart-label-item">
+      <div class="chart-label-title">${pt.label}</div>
+      <div class="chart-label-sub">${pt.pieces} Pcs</div>
+      <div class="chart-label-sub" style="color:var(--primary); font-weight:bold;">+${pt.profit}</div>
+    </div>
+  `).join('');
+}
+
+function getSalesForFilter(filterFn, label) {
+  let rev = 0, prof = 0, pcs = 0;
+  state.sales.forEach(s => {
+    if (s.status === 'Paid' && filterFn(s)) {
+      rev += s.totalSellingPrice;
+      prof += (s.totalSellingPrice - (s.costPrice * s.soldQty));
+      pcs += s.soldQty;
+    }
+  });
+  return { label, revenue: rev, profit: prof, pieces: pcs };
+}
+
+function renderApp() {
+  const invTable = document.getElementById('inventory-table');
+  const itemSelect = document.getElementById('sale-item-select');
+  invTable.innerHTML = '';
+  itemSelect.innerHTML = '<option value="">Select Stock Item</option>';
+  
+  let totalRemainingStock = 0;
+  state.inventory.forEach(item => {
+    totalRemainingStock += item.qty;
+    const imgHtml = item.image ? `<img src="${item.image}" class="prod-img">` : `<div class="prod-img" style="background:#eee;"></div>`;
+    invTable.innerHTML += `<tr><td>${imgHtml}</td><td><strong>${item.sku}</strong></td><td>${item.title}</td><td>PKR ${item.cost}</td><td>${item.qty} Pcs</td></tr>`;
+    if (item.qty > 0) itemSelect.innerHTML += `<option value="${item.sku}">${item.sku} - ${item.title} (${item.qty})</option>`;
+  });
+
+  const salesTable = document.getElementById('sales-history-table');
+  salesTable.innerHTML = '';
+  state.sales.forEach(s => {
+    let badgeClass = s.status === 'Paid' ? 'badge-paid' : 'badge-unpaid';
+    if(s.isClearedUdhaar) badgeClass = 'badge-cleared';
+    const superAdminActions = state.userRole === 'super_admin' ? `
+      <button class="btn-main btn-action" onclick="openEditSaleModal(${s.id})">✏️</button>
+      <button class="btn-main btn-action btn-danger" onclick="deleteSale(${s.id})">🗑️</button>
+    ` : `<span>-</span>`;
+    salesTable.innerHTML += `<tr><td>${s.date}</td><td><strong>${s.sku}</strong></td><td>${s.soldQty} Pcs</td><td>PKR ${s.totalSellingPrice.toLocaleString()}</td><td><span class="badge ${badgeClass}">${s.status}</span></td><td>${superAdminActions}</td></tr>`;
+  });
+
+  const recTable = document.getElementById('receivables-table');
+  recTable.innerHTML = '';
+  let pendingReceivablesAmount = 0;
+  state.sales.filter(s => s.status === 'On Credit' || s.isClearedUdhaar).forEach(s => {
+    if(s.status === 'On Credit') pendingReceivablesAmount += s.totalSellingPrice;
+    recTable.innerHTML += `<tr><td>${s.date}</td><td>${s.custName}</td><td><strong>${s.sku}</strong></td><td>PKR ${s.totalSellingPrice.toLocaleString()}</td><td>${s.dueDate}</td><td><button class="btn-main btn-action" onclick="toggleUdhaarStatus(${s.id})">${s.status === 'On Credit' ? 'Mark Paid' : 'Cleared 🔄'}</button></td></tr>`;
+  });
+
+  const payoutTable = document.getElementById('payout-history-table');
+  payoutTable.innerHTML = '';
+  state.payouts.forEach(p => {
+    payoutTable.innerHTML += `<tr><td><strong>${p.month}</strong></td><td>PKR ${p.netProfit.toLocaleString()}</td><td>PKR ${p.ownerShare.toLocaleString()}</td><td>PKR ${p.sellerShare.toLocaleString()}</td><td><span class="badge ${p.status === 'Approved' ? 'badge-paid' : 'badge-unpaid'}" onclick="toggleSellerApproval(${p.id})">${p.status}</span></td><td><button class="btn-main btn-action" onclick="openProfitCardModal(${p.id})">🖼️ Card JPG</button></td></tr>`;
+  });
+
+  let totalRevenue = 0, totalNetProfit = 0, totalCostOfGoodsSold = 0;
+  state.sales.filter(s => s.status === 'Paid').forEach(s => {
+    totalRevenue += s.totalSellingPrice;
+    const cogs = s.costPrice * s.soldQty;
+    totalCostOfGoodsSold += cogs;
+    totalNetProfit += (s.totalSellingPrice - cogs);
+  });
+
+  metricsValues.profit = totalNetProfit;
+  metricsValues.revenue = totalRevenue;
+  metricsValues.owner = totalCostOfGoodsSold + (totalNetProfit / 2);
+  metricsValues.seller = totalNetProfit / 2;
+
+  ['profit', 'revenue', 'owner', 'seller'].forEach(m => updateMetricDisplay(m));
+
+  document.getElementById('dash-receivables').innerText = `PKR ${pendingReceivablesAmount.toLocaleString()}`;
+  document.getElementById('dash-stock').innerText = `${totalRemainingStock} Pcs`;
+
+  const currentMonthStr = new Date().toISOString().slice(0, 7);
+  if(!document.getElementById('payout-month').value) {
+    document.getElementById('payout-month').value = currentMonthStr;
+    calculatePayoutPreview();
+  }
+
+  renderChart();
+}
+
+checkAuth();
+</script>
+</body>
+</html>
+
+  <script>
+
+  </script>
+</body>
+</html>
